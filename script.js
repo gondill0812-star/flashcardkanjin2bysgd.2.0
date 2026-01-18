@@ -13,6 +13,8 @@ let index = savedIndex ? Number(savedIndex) : 0;
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
+let isAnswerLocked = false;
+
 
 /* ===============================
    INIT
@@ -39,6 +41,7 @@ function loadPart() {
 ================================ */
 function render() {
   hideAll();
+  isAnswerLocked = false; // ← ini penting
 
   const card = cards[index];
   if (!card) return;
@@ -101,28 +104,39 @@ function nextCard() {
 function prevCard() {
   if (index > 0) {
     index--;
-    saveProgress();
+    isAnswerLocked = true; // ← prev = lihat aja
+    hideAnswerButtons();
     render();
   }
+}
+
+function hideAnswerButtons() {
+  document.getElementById("correctBtn")?.classList.add("hidden");
+  document.getElementById("wrongBtn")?.classList.add("hidden");
 }
 
 /* ===============================
    ANSWER
 ================================ */
 function markCorrect() {
+  if (isAnswerLocked) return;
+  isAnswerLocked = true;
+
   correctCount++;
-  localStorage.setItem("fc_correct", correctCount);
   updateStats();
   nextCard();
 }
 
 function markWrong() {
+  if (isAnswerLocked) return;
+  isAnswerLocked = true;
+
   wrongCount++;
-  localStorage.setItem("fc_wrong", wrongCount);
   wrongCards.push(cards[index]);
   updateStats();
   nextCard();
 }
+
 
 /* ===============================
    PART
@@ -185,5 +199,6 @@ wrongCount = 0;
 localStorage.setItem("fc_correct", 0);
 localStorage.setItem("fc_wrong", 0);
 updateStats();
+
 
 
