@@ -3,7 +3,6 @@
 ================================ */
 let correctCount = 0;
 let wrongCount = 0;
-
 let savedPart = localStorage.getItem("flashcard_part");
 let savedIndex = localStorage.getItem("flashcard_index");
 
@@ -13,6 +12,7 @@ let index = savedIndex ? Number(savedIndex) : 0;
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
+let isAnswerLocked = false;
 
 /* ===============================
    INIT
@@ -23,23 +23,22 @@ function loadPart() {
   index = 0;
   isReviewMode = false;
 
-  // RESET STATISTIK
   correctCount = 0;
   wrongCount = 0;
 
   document.getElementById("partSelect").value = currentPart;
 
-  updateProgress();
-  updateStats();
   render();
+  updateStats();
+  hideNextButton();
+  showAnswerButtons();
 }
 
 /* ===============================
-   RENDER
+   RENDER & REVEAL
 ================================ */
 function render() {
   hideAll();
-
   const card = cards[index];
   if (!card) return;
 
@@ -53,23 +52,42 @@ function render() {
   updateProgress();
 }
 
-/* ===============================
-   VISIBILITY
-================================ */
-function hideAll() {
-  document.getElementById("reading").classList.add("hidden");
-  document.getElementById("meaning").classList.add("hidden");
-  document.getElementById("sentence").classList.add("hidden");
-  document.getElementById("sentence-reading").classList.add("hidden");
-  document.getElementById("sentence-meaning").classList.add("hidden");
-}
-
 function reveal() {
   document.getElementById("reading").classList.remove("hidden");
   document.getElementById("meaning").classList.remove("hidden");
   document.getElementById("sentence").classList.remove("hidden");
   document.getElementById("sentence-reading").classList.remove("hidden");
   document.getElementById("sentence-meaning").classList.remove("hidden");
+
+  isAnswerLocked = false;
+  showAnswerButtons();
+  hideNextButton();
+}
+
+/* ===============================
+   VISIBILITY HELPERS
+================================ */
+function hideAll() {
+  ["reading","meaning","sentence","sentence-reading","sentence-meaning"]
+    .forEach(id => document.getElementById(id).classList.add("hidden"));
+}
+
+function showAnswerButtons() {
+  document.getElementById("btnCorrect").classList.remove("hidden");
+  document.getElementById("btnWrong").classList.remove("hidden");
+}
+
+function hideAnswerButtons() {
+  document.getElementById("btnCorrect").classList.add("hidden");
+  document.getElementById("btnWrong").classList.add("hidden");
+}
+
+function showNextButton() {
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+
+function hideNextButton() {
+  document.getElementById("nextBtn").classList.add("hidden");
 }
 
 /* ===============================
@@ -77,10 +95,8 @@ function reveal() {
 ================================ */
 function nextCard() {
   index++;
-
-  // habis kartu normal → masuk review
-  if (index >= cards.length) {
-    if (!isReviewMode && wrongCards.length > 0) {
+  if(index >= cards.length){
+    if(!isReviewMode && wrongCards.length>0){
       cards = [...wrongCards];
       wrongCards = [];
       index = 0;
@@ -88,21 +104,25 @@ function nextCard() {
       alert("Mengulang kartu yang salah");
     } else {
       alert("Sesi selesai 🎉");
-      index = cards.length - 1;
+      index = cards.length-1;
       saveProgress();
       return;
     }
   }
 
+  hideNextButton();
+  showAnswerButtons();
   saveProgress();
   render();
 }
 
 function prevCard() {
-  if (index > 0) {
+  if(index>0){
     index--;
-    saveProgress();
     render();
+    showNextButton();
+    hideAnswerButtons();
+    saveProgress();
   }
 }
 
@@ -110,24 +130,33 @@ function prevCard() {
    ANSWER
 ================================ */
 function markCorrect() {
+  if(isAnswerLocked) return;
+  isAnswerLocked = true;
+
   correctCount++;
-  localStorage.setItem("fc_correct", correctCount);
+  wrongCards = wrongCards.filter((c,i)=>i!==index); // hapus jika sebelumnya salah
   updateStats();
-  nextCard();
+
+  hideAnswerButtons();
+  showNextButton();
 }
 
 function markWrong() {
+  if(isAnswerLocked) return;
+  isAnswerLocked = true;
+
   wrongCount++;
-  localStorage.setItem("fc_wrong", wrongCount);
   wrongCards.push(cards[index]);
   updateStats();
-  nextCard();
+
+  hideAnswerButtons();
+  showNextButton();
 }
 
 /* ===============================
    PART
 ================================ */
-function changePart() {
+function changePart(){
   currentPart = Number(document.getElementById("partSelect").value);
   loadPart();
 }
@@ -135,7 +164,7 @@ function changePart() {
 /* ===============================
    STORAGE
 ================================ */
-function saveProgress() {
+function saveProgress(){
   localStorage.setItem("flashcard_part", currentPart);
   localStorage.setItem("flashcard_index", index);
 }
@@ -143,74 +172,30 @@ function saveProgress() {
 /* ===============================
    UI
 ================================ */
-function updateProgress() {
+function updateProgress(){
   const progress = document.getElementById("progress");
-  if (!progress) return;
-
-  progress.textContent =
-    `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
+  if(!progress) return;
+  progress.textContent = `Card ${index+1} / ${cards.length} (Part ${currentPart})`;
 }
 
-function updateStats() {
+function updateStats(){
   const stats = document.getElementById("stats");
-  if (!stats) return;
-
+  if(!stats) return;
   const total = correctCount + wrongCount;
-  const accuracy = total
-    ? Math.round((correctCount / total) * 100)
-    : 0;
-
-  stats.textContent =
-    `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
+  const accuracy = total ? Math.round(correctCount/total*100) : 0;
+  stats.textContent = `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
-
 
 /* ===============================
    EVENTS
 ================================ */
-function bindEvents() {
-  document.getElementById("revealBtn").addEventListener("click", reveal);
-  document.getElementById("nextBtn")?.addEventListener("click", nextCard);
-  document.getElementById("prevBtn").addEventListener("click", prevCard);
-  document.getElementById("partSelect").addEventListener("change", changePart);
+function bindEvents(){
+  document.getElementById("revealBtn").addEventListener("click",reveal);
+  document.getElementById("nextBtn").addEventListener("click",nextCard);
+  document.getElementById("prevBtn").addEventListener("click",prevCard);
+  document.getElementById("partSelect").addEventListener("change",changePart);
 }
 
-document.addEventListener("keydown", (e) => {
-  const tag = document.activeElement.tagName;
-  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
-
-  switch (e.key) {
-    case " ":
-      e.preventDefault();
-      reveal();
-      break;
-
-    case "1":
-      markCorrect(); // otomatis next
-      break;
-
-    case "2":
-      markWrong(); // otomatis next
-      break;
-
-    case "ArrowLeft":
-      prevCard(); // opsional
-      break;
-
-    case "p":
-    case "P":
-      document.getElementById("partSelect")?.focus();
-      break;
-  }
-});
-
-/* ===============================
-   START
-================================ */
 bindEvents();
 loadPart();
-correctCount = 0;
-wrongCount = 0;
-localStorage.setItem("fc_correct", 0);
-localStorage.setItem("fc_wrong", 0);
 updateStats();
