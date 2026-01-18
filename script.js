@@ -65,12 +65,16 @@ function hideAll() {
 }
 
 function reveal() {
+  isAnswerLocked = false;      // 🔓 buka lagi
+  showAnswerButtons();        // munculkan tombol
+
   document.getElementById("reading").classList.remove("hidden");
   document.getElementById("meaning").classList.remove("hidden");
   document.getElementById("sentence").classList.remove("hidden");
   document.getElementById("sentence-reading").classList.remove("hidden");
   document.getElementById("sentence-meaning").classList.remove("hidden");
 }
+
 
 /* ===============================
    HELPER
@@ -199,3 +203,4 @@ function bindEvents() {
 bindEvents();
 loadPart();
 updateStats();
+
