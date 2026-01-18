@@ -14,6 +14,9 @@ let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
 
+// simpan jawaban tiap kartu: key = "part_index", value = "correct"/"wrong"
+let answeredCards = JSON.parse(localStorage.getItem("answeredCards") || "{}");
+
 /* ===============================
    INIT
 ================================ */
@@ -32,6 +35,7 @@ function loadPart() {
   updateProgress();
   updateStats();
   render();
+  updateButtons();
 }
 
 /* ===============================
@@ -51,6 +55,7 @@ function render() {
   document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
 
   updateProgress();
+  updateButtons();
 }
 
 /* ===============================
@@ -101,7 +106,6 @@ function nextCard() {
 function prevCard() {
   if (index > 0) {
     index--;
-    saveProgress();
     render();
   }
 }
@@ -110,16 +114,24 @@ function prevCard() {
    ANSWER
 ================================ */
 function markCorrect() {
+  const key = `${currentPart}_${index}`;
+  if (answeredCards[key]) return; // lock jawaban
+
+  answeredCards[key] = "correct";
   correctCount++;
-  localStorage.setItem("fc_correct", correctCount);
+  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
   updateStats();
   nextCard();
 }
 
 function markWrong() {
+  const key = `${currentPart}_${index}`;
+  if (answeredCards[key]) return; // lock jawaban
+
+  answeredCards[key] = "wrong";
   wrongCount++;
-  localStorage.setItem("fc_wrong", wrongCount);
   wrongCards.push(cards[index]);
+  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
   updateStats();
   nextCard();
 }
@@ -156,14 +168,34 @@ function updateStats() {
   if (!stats) return;
 
   const total = correctCount + wrongCount;
-  const accuracy = total
-    ? Math.round((correctCount / total) * 100)
-    : 0;
+  const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
 
   stats.textContent =
     `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
+function updateButtons() {
+  const key = `${currentPart}_${index}`;
+  const btnCorrect = document.getElementById("btnCorrect");
+  const btnWrong = document.getElementById("btnWrong");
+  const nextBtn = document.getElementById("nextBtn");
+  const revealBtn = document.getElementById("revealBtn");
+
+  if (answeredCards[key]) {
+    // kartu sudah dijawab → tombol Benar/Salah hilang, Next muncul
+    btnCorrect.classList.add("hidden");
+    btnWrong.classList.add("hidden");
+    nextBtn.classList.remove("hidden");
+  } else {
+    // kartu belum dijawab → tombol Benar/Salah muncul, Next hide
+    btnCorrect.classList.remove("hidden");
+    btnWrong.classList.remove("hidden");
+    nextBtn.classList.add("hidden");
+  }
+
+  // Reveal selalu tampil
+  revealBtn.classList.remove("hidden");
+}
 
 /* ===============================
    EVENTS
@@ -171,45 +203,54 @@ function updateStats() {
 function bindEvents() {
   document.getElementById("revealBtn").addEventListener("click", reveal);
   document.getElementById("prevBtn").addEventListener("click", prevCard);
+  document.getElementById("nextBtn").addEventListener("click", nextCard);
   document.getElementById("partSelect").addEventListener("change", changePart);
 }
 
-document.addEventListener("keydown", (e) => {
-  const tag = document.activeElement.tagName;
-  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+function setupDesktopShortcuts() {
+  // Cek apakah device desktop/laptop
+  const isDesktop = window.innerWidth >= 768; 
+  if (!isDesktop) return; // jika HP/touchscreen, tidak pasang shortcut
 
-  switch (e.key) {
-    case " ":
-      e.preventDefault();
-      reveal();
-      break;
+  // Pasang event listener untuk keyboard
+  document.addEventListener("keydown", (e) => {
+    // Abaikan jika fokus di input, select, atau textarea
+    const tag = document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
 
-    case "1":
-      markCorrect(); // otomatis next
-      break;
+    switch (e.key) {
+      case " ": // Space → reveal
+        e.preventDefault(); // cegah scroll
+        reveal();
+        break;
 
-    case "2":
-      markWrong(); // otomatis next
-      break;
+      case "1": // 1 → mark correct
+        markCorrect();
+        break;
 
-    case "ArrowLeft":
-      prevCard(); // opsional
-      break;
+      case "2": // 2 → mark wrong
+        markWrong();
+        break;
 
-    case "p":
-    case "P":
-      document.getElementById("partSelect")?.focus();
-      break;
-  }
-});
+      case "ArrowLeft": // kiri → prev
+        prevCard();
+        break;
+
+      case "ArrowRight": // kanan → next
+        nextCard();
+        break;
+
+      case "p":
+      case "P": // p → fokus ke dropdown part
+        document.getElementById("partSelect")?.focus();
+        break;
+    }
+  });
+}
 
 /* ===============================
    START
 ================================ */
 bindEvents();
 loadPart();
-correctCount = 0;
-wrongCount = 0;
-localStorage.setItem("fc_correct", 0);
-localStorage.setItem("fc_wrong", 0);
-updateStats();
+setupDesktopShortcuts(); 
