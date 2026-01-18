@@ -13,7 +13,6 @@ let index = savedIndex ? Number(savedIndex) : 0;
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
-let isAnswerLocked = false;
 
 /* ===============================
    INIT
@@ -32,92 +31,41 @@ function loadPart() {
   updateProgress();
   updateStats();
   render();
-  hideNextButton();
-  showAnswerButtons();
-  hideAll(); // sembunyikan jawaban
 }
 
 /* ===============================
-   RENDER & REVEAL
+   RENDER
 ================================ */
 function render() {
-  hideAll();
   const card = cards[index];
   if (!card) return;
 
-  document.getElementById("kanji").textContent = card.kanji;
-  document.getElementById("reading").textContent = card.reading;
-  document.getElementById("meaning").textContent = card.meaning;
-  document.getElementById("sentence").textContent = card.sentence;
-  document.getElementById("sentence-reading").textContent = card.sentenceReading;
-  document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
+  document.getElementById("kanji").textContent = card.kanji || "漢字";
+  document.getElementById("reading").textContent = card.reading || "読み";
+  document.getElementById("meaning").textContent = card.meaning || "意味";
+  document.getElementById("sentence").textContent = card.sentence || "文";
+  document.getElementById("sentence-reading").textContent = card.sentenceReading || "文読み";
+  document.getElementById("sentence-meaning").textContent = card.sentenceMeaning || "文意味";
 
   updateProgress();
-}
-
-function reveal() {
-  isAnswerLocked = false;
-  document.getElementById("reading").classList.remove("hidden");
-  document.getElementById("meaning").classList.remove("hidden");
-  document.getElementById("sentence").classList.remove("hidden");
-  document.getElementById("sentence-reading").classList.remove("hidden");
-  document.getElementById("sentence-meaning").classList.remove("hidden");
-
-  showAnswerButtons();
-  hideNextButton();
-}
-
-/* ===============================
-   VISIBILITY HELPERS
-================================ */
-function hideAll() {
-  document.getElementById("reading").classList.add("hidden");
-  document.getElementById("meaning").classList.add("hidden");
-  document.getElementById("sentence").classList.add("hidden");
-  document.getElementById("sentence-reading").classList.add("hidden");
-  document.getElementById("sentence-meaning").classList.add("hidden");
-}
-
-function hideAnswerButtons() {
-  document.getElementById("btnCorrect").classList.add("hidden");
-  document.getElementById("btnWrong").classList.add("hidden");
-}
-
-function showAnswerButtons() {
-  document.getElementById("btnCorrect").classList.remove("hidden");
-  document.getElementById("btnWrong").classList.remove("hidden");
-}
-
-function showNextButton() {
-  document.getElementById("nextBtn").classList.remove("hidden");
-}
-
-function hideNextButton() {
-  document.getElementById("nextBtn").classList.add("hidden");
 }
 
 /* ===============================
    NAVIGATION
 ================================ */
 function nextCard() {
-  index++;
-  if (index >= cards.length) {
-    if (!isReviewMode && wrongCards.length > 0) {
-      cards = [...wrongCards];
-      wrongCards = [];
-      index = 0;
-      isReviewMode = true;
-      alert("Mengulang kartu yang salah");
-    } else {
-      alert("Sesi selesai 🎉");
-      index = cards.length - 1;
-      saveProgress();
-      return;
-    }
+  if (index < cards.length - 1) {
+    index++;
+  } else if (!isReviewMode && wrongCards.length > 0) {
+    cards = [...wrongCards];
+    wrongCards = [];
+    index = 0;
+    isReviewMode = true;
+    alert("Mengulang kartu yang salah");
+  } else {
+    alert("Sesi selesai 🎉");
+    return;
   }
-
-  hideNextButton();
-  showAnswerButtons();
   saveProgress();
   render();
 }
@@ -127,11 +75,6 @@ function prevCard() {
     index--;
     saveProgress();
     render();
-
-    // Prev → lihat jawaban
-    hideNextButton();
-    showAnswerButtons();
-    hideAll();
   }
 }
 
@@ -139,24 +82,16 @@ function prevCard() {
    ANSWER
 ================================ */
 function markCorrect() {
-  if (isAnswerLocked) return;
-  isAnswerLocked = true;
-
   correctCount++;
   updateStats();
-  showNextButton();
-  hideAnswerButtons();
+  nextCard();
 }
 
 function markWrong() {
-  if (isAnswerLocked) return;
-  isAnswerLocked = true;
-
   wrongCount++;
   wrongCards.push(cards[index]);
   updateStats();
-  showNextButton();
-  hideAnswerButtons();
+  nextCard();
 }
 
 /* ===============================
@@ -179,34 +114,24 @@ function saveProgress() {
    UI
 ================================ */
 function updateProgress() {
-  const progress = document.getElementById("progress");
-  if (!progress) return;
-  progress.textContent = `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
+  document.getElementById("progress").textContent =
+    `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
 }
 
 function updateStats() {
-  const stats = document.getElementById("stats");
-  if (!stats) return;
-
   const total = correctCount + wrongCount;
   const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
-
-  stats.textContent = `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
+  document.getElementById("stats").textContent =
+    `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
 /* ===============================
    EVENTS
 ================================ */
 function bindEvents() {
-  document.getElementById("revealBtn").addEventListener("click", reveal);
-  document.getElementById("nextBtn").addEventListener("click", nextCard);
+  document.getElementById("revealBtn").addEventListener("click", render);
   document.getElementById("prevBtn").addEventListener("click", prevCard);
-  document.getElementById("partSelect").addEventListener("change", changePart);
 }
 
-/* ===============================
-   START
-================================ */
 bindEvents();
 loadPart();
-updateStats();
