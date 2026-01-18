@@ -37,34 +37,58 @@ function loadPart() {
    RENDER
 ================================ */
 function render() {
+  hideAll();
+
   const card = cards[index];
   if (!card) return;
 
-  document.getElementById("kanji").textContent = card.kanji || "漢字";
-  document.getElementById("reading").textContent = card.reading || "読み";
-  document.getElementById("meaning").textContent = card.meaning || "意味";
-  document.getElementById("sentence").textContent = card.sentence || "文";
-  document.getElementById("sentence-reading").textContent = card.sentenceReading || "文読み";
-  document.getElementById("sentence-meaning").textContent = card.sentenceMeaning || "文意味";
+  document.getElementById("kanji").textContent = card.kanji;
+  document.getElementById("reading").textContent = card.reading;
+  document.getElementById("meaning").textContent = card.meaning;
+  document.getElementById("sentence").textContent = card.sentence;
+  document.getElementById("sentence-reading").textContent = card.sentenceReading;
+  document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
 
   updateProgress();
+}
+
+/* ===============================
+   VISIBILITY
+================================ */
+function hideAll() {
+  document.getElementById("reading").classList.add("hidden");
+  document.getElementById("meaning").classList.add("hidden");
+  document.getElementById("sentence").classList.add("hidden");
+  document.getElementById("sentence-reading").classList.add("hidden");
+  document.getElementById("sentence-meaning").classList.add("hidden");
+}
+
+function reveal() {
+  document.getElementById("reading").classList.remove("hidden");
+  document.getElementById("meaning").classList.remove("hidden");
+  document.getElementById("sentence").classList.remove("hidden");
+  document.getElementById("sentence-reading").classList.remove("hidden");
+  document.getElementById("sentence-meaning").classList.remove("hidden");
 }
 
 /* ===============================
    NAVIGATION
 ================================ */
 function nextCard() {
-  if (index < cards.length - 1) {
-    index++;
-  } else if (!isReviewMode && wrongCards.length > 0) {
-    cards = [...wrongCards];
-    wrongCards = [];
-    index = 0;
-    isReviewMode = true;
-    alert("Mengulang kartu yang salah");
-  } else {
-    alert("Sesi selesai 🎉");
-    return;
+  index++;
+  if (index >= cards.length) {
+    if (!isReviewMode && wrongCards.length > 0) {
+      cards = [...wrongCards];
+      wrongCards = [];
+      index = 0;
+      isReviewMode = true;
+      alert("Mengulang kartu yang salah");
+    } else {
+      alert("Sesi selesai 🎉");
+      index = cards.length - 1;
+      saveProgress();
+      return;
+    }
   }
   saveProgress();
   render();
@@ -83,6 +107,7 @@ function prevCard() {
 ================================ */
 function markCorrect() {
   correctCount++;
+  wrongCards.push(); // jangan masukkan ke wrongCards
   updateStats();
   nextCard();
 }
@@ -114,14 +139,21 @@ function saveProgress() {
    UI
 ================================ */
 function updateProgress() {
-  document.getElementById("progress").textContent =
+  const progress = document.getElementById("progress");
+  if (!progress) return;
+
+  progress.textContent =
     `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
 }
 
 function updateStats() {
+  const stats = document.getElementById("stats");
+  if (!stats) return;
+
   const total = correctCount + wrongCount;
   const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
-  document.getElementById("stats").textContent =
+
+  stats.textContent =
     `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
@@ -129,9 +161,16 @@ function updateStats() {
    EVENTS
 ================================ */
 function bindEvents() {
-  document.getElementById("revealBtn").addEventListener("click", render);
+  document.getElementById("revealBtn").addEventListener("click", reveal);
   document.getElementById("prevBtn").addEventListener("click", prevCard);
+  document.getElementById("btnCorrect").addEventListener("click", markCorrect);
+  document.getElementById("btnWrong").addEventListener("click", markWrong);
+  document.getElementById("partSelect").addEventListener("change", changePart);
 }
 
+/* ===============================
+   START
+================================ */
 bindEvents();
 loadPart();
+updateStats();
