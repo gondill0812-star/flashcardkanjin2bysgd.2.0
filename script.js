@@ -13,9 +13,7 @@ let index = savedIndex ? Number(savedIndex) : 0;
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
-
-// ini untuk mencegah dobel hitung jawaban
-let answeredIndex = null;
+let isAnswerLocked = false;
 
 /* ===============================
    INIT
@@ -28,17 +26,19 @@ function loadPart() {
 
   correctCount = 0;
   wrongCount = 0;
-  answeredIndex = null;
 
   document.getElementById("partSelect").value = currentPart;
 
   updateProgress();
   updateStats();
   render();
+
+  hideNextButton();
+  showAnswerButtons();
 }
 
 /* ===============================
-   RENDER
+   RENDER & REVEAL
 ================================ */
 function render() {
   hideAll();
@@ -56,20 +56,10 @@ function render() {
   updateProgress();
 }
 
-/* ===============================
-   VISIBILITY
-================================ */
-function hideAll() {
-  document.getElementById("reading").classList.add("hidden");
-  document.getElementById("meaning").classList.add("hidden");
-  document.getElementById("sentence").classList.add("hidden");
-  document.getElementById("sentence-reading").classList.add("hidden");
-  document.getElementById("sentence-meaning").classList.add("hidden");
-}
-
 function reveal() {
-  // munculkan jawaban dan tombol
-  showAnswerButtons();
+  isAnswerLocked = false;      // unlock jawaban
+  showAnswerButtons();          // munculkan tombol Benar/Salah
+  hideNextButton();             // sembunyikan Next
 
   document.getElementById("reading").classList.remove("hidden");
   document.getElementById("meaning").classList.remove("hidden");
@@ -79,24 +69,32 @@ function reveal() {
 }
 
 /* ===============================
-   HELPER
+   VISIBILITY HELPERS
 ================================ */
+function hideAll() {
+  document.getElementById("reading").classList.add("hidden");
+  document.getElementById("meaning").classList.add("hidden");
+  document.getElementById("sentence").classList.add("hidden");
+  document.getElementById("sentence-reading").classList.add("hidden");
+  document.getElementById("sentence-meaning").classList.add("hidden");
+}
+
 function hideAnswerButtons() {
-  document.getElementById("btnCorrect")?.classList.add("hidden");
-  document.getElementById("btnWrong")?.classList.add("hidden");
-  document.getElementById("nextBtn")?.classList.add("hidden");
+  document.getElementById("correctBtn")?.classList.add("hidden");
+  document.getElementById("wrongBtn")?.classList.add("hidden");
 }
 
 function showAnswerButtons() {
-  document.getElementById("btnCorrect")?.classList.remove("hidden");
-  document.getElementById("btnWrong")?.classList.remove("hidden");
-  document.getElementById("nextBtn")?.classList.add("hidden");
+  document.getElementById("correctBtn")?.classList.remove("hidden");
+  document.getElementById("wrongBtn")?.classList.remove("hidden");
 }
 
-function showNextButtonOnly() {
-  document.getElementById("btnCorrect")?.classList.add("hidden");
-  document.getElementById("btnWrong")?.classList.add("hidden");
+function showNextButton() {
   document.getElementById("nextBtn")?.classList.remove("hidden");
+}
+
+function hideNextButton() {
+  document.getElementById("nextBtn")?.classList.add("hidden");
 }
 
 /* ===============================
@@ -120,8 +118,9 @@ function nextCard() {
     }
   }
 
-  answeredIndex = null; // reset jawaban baru
-  showAnswerButtons();
+  isAnswerLocked = false;
+  showAnswerButtons();   // tombol Benar/Salah muncul
+  hideNextButton();      // Next disembunyikan
   saveProgress();
   render();
 }
@@ -129,10 +128,13 @@ function nextCard() {
 function prevCard() {
   if (index > 0) {
     index--;
+    isAnswerLocked = true;  // prev = lihat saja
+
     render();
 
-    // Prev mode = lihat ulang, tombol Benar/Salah disembunyikan
-    showNextButtonOnly();
+    // tombol Next muncul, Benar/Salah hilang
+    showNextButton();
+    hideAnswerButtons();
   }
 }
 
@@ -140,18 +142,18 @@ function prevCard() {
    ANSWER
 ================================ */
 function markCorrect() {
-  if (answeredIndex === index) return; // cegah dobel hitung
+  if (isAnswerLocked) return;
+  isAnswerLocked = true;
 
-  answeredIndex = index;
   correctCount++;
   updateStats();
   nextCard();
 }
 
 function markWrong() {
-  if (answeredIndex === index) return; // cegah dobel hitung
+  if (isAnswerLocked) return;
+  isAnswerLocked = true;
 
-  answeredIndex = index;
   wrongCount++;
   wrongCards.push(cards[index]);
   updateStats();
@@ -203,7 +205,7 @@ function updateStats() {
 ================================ */
 function bindEvents() {
   document.getElementById("revealBtn").addEventListener("click", reveal);
-  document.getElementById("nextBtn")?.addEventListener("click", nextCard);
+  document.getElementById("nextBtn").addEventListener("click", nextCard);
   document.getElementById("prevBtn").addEventListener("click", prevCard);
   document.getElementById("partSelect").addEventListener("change", changePart);
 }
