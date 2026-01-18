@@ -23,6 +23,7 @@ function loadPart() {
   index = 0;
   isReviewMode = false;
 
+  // Reset statistik
   correctCount = 0;
   wrongCount = 0;
 
@@ -107,7 +108,6 @@ function prevCard() {
 ================================ */
 function markCorrect() {
   correctCount++;
-  wrongCards.push(); // jangan masukkan ke wrongCards
   updateStats();
   nextCard();
 }
@@ -167,6 +167,35 @@ function bindEvents() {
   document.getElementById("btnWrong").addEventListener("click", markWrong);
   document.getElementById("partSelect").addEventListener("change", changePart);
 }
+
+document.addEventListener("keydown", (e) => {
+  const tag = document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+  switch (e.key) {
+    case " ":
+      e.preventDefault();
+      reveal();
+      break;
+
+    case "1":
+      markCorrect();
+      break;
+
+    case "2":
+      markWrong();
+      break;
+
+    case "ArrowLeft":
+      prevCard();
+      break;
+
+    case "p":
+    case "P":
+      document.getElementById("partSelect")?.focus();
+      break;
+  }
+});
 
 /* ===============================
    START
