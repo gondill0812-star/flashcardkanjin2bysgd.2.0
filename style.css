@@ -1,0 +1,106 @@
+body {
+  background: linear-gradient(135deg, #000000, #3a3a3a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+  background: #fff;
+  padding: 20px;
+  width: 350px;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 550px;
+}
+
+.flashcard-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  text-align: center;
+}
+
+.kanji-wrapper {
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  text-align: center;
+}
+
+.buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.kanji {
+  font-size: 64px;
+  margin-bottom: 15px;
+  color: #000;
+  text-align: center;
+}
+
+.text {
+  font-size: 18px;
+  margin: 6px 0;
+  color: #000;
+}
+
+.hidden {
+  display: none;
+}
+
+button, select {
+  margin: 6px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+  background: linear-gradient(135deg, #12051f, #00ddff);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+button:hover, select:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 10px rgba(0,0,0,0.4);
+}
+
+button:active, select:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+}
+
+select option {
+  background-color: #ffffff;
+  color: #000;
+}
+
+.progress-text {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
