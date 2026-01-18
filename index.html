@@ -2,7 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+
+  <!-- WAJIB supaya ukuran normal di HP -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Kanji Flashcard</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,39 +14,44 @@
 <div class="container">
 
   <select id="partSelect" onchange="changePart()">
-    <option value="1">Part 1 N2</option>
-    <option value="2">Part 2 N2</option>
-    <option value="3">Part 3 N2</option>
-    <option value="4">Part 4 N2</option>
-    <option value="5">Part 5 N2</option>
-    <option value="6">Part 6 N2</option>
-    <option value="7">Part 7 N2</option>
+    <option value="1">Part 1</option>
+    <option value="2">Part 2</option>
+    <option value="3">Part 3</option>
+    <option value="4">Part 4</option>
+    <option value="5">Part 5</option>
+    <option value="6">Part 6</option>
+    <option value="7">Part 7</option>
   </select>
 
   <div id="progress" class="progress-text"></div>
   <div id="stats" class="progress-text"></div>
 
+
   <div class="flashcard-content">
+
     <div class="kanji-wrapper">
       <div id="kanji" class="kanji">漢字</div>
     </div>
+
     <div class="text-wrapper">
-      <div id="reading" class="text">読み</div>
-      <div id="meaning" class="text">意味</div>
+      <div id="reading" class="text hidden"></div>
+      <div id="meaning" class="text hidden"></div>
+
       <div class="sentence-group">
-        <div id="sentence" class="text">文</div>
-        <div id="sentence-reading" class="text">文読み</div>
-        <div id="sentence-meaning" class="text">文意味</div>
+        <div id="sentence" class="text hidden"></div>
+        <div id="sentence-reading" class="text hidden"></div>
+        <div id="sentence-meaning" class="text hidden"></div>
       </div>
     </div>
+
   </div>
 
-  <div class="buttons">
-    <button id="revealBtn">Reveal</button>
-    <button id="prevBtn">Prev</button>
-    <button id="btnCorrect" onclick="markCorrect()">Benar</button>
-    <button id="btnWrong" onclick="markWrong()">Salah</button>
-  </div>
+<div class="buttons">
+  <button id="revealBtn">Reveal</button>
+  <button id="prevBtn">Prev</button>
+  <button id="btnCorrect" onclick="markCorrect()">Benar</button>
+  <button id="btnWrong" onclick="markWrong()">Salah</button>
+</div>
 
 </div>
 
