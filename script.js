@@ -15,7 +15,6 @@ let wrongCards = [];
 let isReviewMode = false;
 let isAnswerLocked = false;
 
-
 /* ===============================
    INIT
 ================================ */
@@ -25,7 +24,6 @@ function loadPart() {
   index = 0;
   isReviewMode = false;
 
-  // RESET STATISTIK
   correctCount = 0;
   wrongCount = 0;
 
@@ -41,7 +39,6 @@ function loadPart() {
 ================================ */
 function render() {
   hideAll();
-  isAnswerLocked = false; // ← ini penting
 
   const card = cards[index];
   if (!card) return;
@@ -76,12 +73,24 @@ function reveal() {
 }
 
 /* ===============================
+   HELPER
+================================ */
+function hideAnswerButtons() {
+  document.getElementById("correctBtn")?.classList.add("hidden");
+  document.getElementById("wrongBtn")?.classList.add("hidden");
+}
+
+function showAnswerButtons() {
+  document.getElementById("correctBtn")?.classList.remove("hidden");
+  document.getElementById("wrongBtn")?.classList.remove("hidden");
+}
+
+/* ===============================
    NAVIGATION
 ================================ */
 function nextCard() {
   index++;
 
-  // habis kartu normal → masuk review
   if (index >= cards.length) {
     if (!isReviewMode && wrongCards.length > 0) {
       cards = [...wrongCards];
@@ -97,6 +106,8 @@ function nextCard() {
     }
   }
 
+  isAnswerLocked = false;
+  showAnswerButtons();
   saveProgress();
   render();
 }
@@ -104,15 +115,10 @@ function nextCard() {
 function prevCard() {
   if (index > 0) {
     index--;
-    isAnswerLocked = true; // ← prev = lihat aja
+    isAnswerLocked = true; // prev = lihat saja
     hideAnswerButtons();
     render();
   }
-}
-
-function hideAnswerButtons() {
-  document.getElementById("correctBtn")?.classList.add("hidden");
-  document.getElementById("wrongBtn")?.classList.add("hidden");
 }
 
 /* ===============================
@@ -136,7 +142,6 @@ function markWrong() {
   updateStats();
   nextCard();
 }
-
 
 /* ===============================
    PART
@@ -178,7 +183,6 @@ function updateStats() {
     `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
-
 /* ===============================
    EVENTS
 ================================ */
@@ -194,11 +198,4 @@ function bindEvents() {
 ================================ */
 bindEvents();
 loadPart();
-correctCount = 0;
-wrongCount = 0;
-localStorage.setItem("fc_correct", 0);
-localStorage.setItem("fc_wrong", 0);
 updateStats();
-
-
-
