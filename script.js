@@ -3,6 +3,7 @@
 ================================ */
 let correctCount = 0;
 let wrongCount = 0;
+
 let savedPart = localStorage.getItem("flashcard_part");
 let savedIndex = localStorage.getItem("flashcard_index");
 
@@ -28,10 +29,12 @@ function loadPart() {
 
   document.getElementById("partSelect").value = currentPart;
 
-  render();
+  updateProgress();
   updateStats();
+  render();
   hideNextButton();
   showAnswerButtons();
+  hideAll(); // sembunyikan jawaban
 }
 
 /* ===============================
@@ -53,13 +56,13 @@ function render() {
 }
 
 function reveal() {
+  isAnswerLocked = false;
   document.getElementById("reading").classList.remove("hidden");
   document.getElementById("meaning").classList.remove("hidden");
   document.getElementById("sentence").classList.remove("hidden");
   document.getElementById("sentence-reading").classList.remove("hidden");
   document.getElementById("sentence-meaning").classList.remove("hidden");
 
-  isAnswerLocked = false;
   showAnswerButtons();
   hideNextButton();
 }
@@ -68,18 +71,21 @@ function reveal() {
    VISIBILITY HELPERS
 ================================ */
 function hideAll() {
-  ["reading","meaning","sentence","sentence-reading","sentence-meaning"]
-    .forEach(id => document.getElementById(id).classList.add("hidden"));
-}
-
-function showAnswerButtons() {
-  document.getElementById("btnCorrect").classList.remove("hidden");
-  document.getElementById("btnWrong").classList.remove("hidden");
+  document.getElementById("reading").classList.add("hidden");
+  document.getElementById("meaning").classList.add("hidden");
+  document.getElementById("sentence").classList.add("hidden");
+  document.getElementById("sentence-reading").classList.add("hidden");
+  document.getElementById("sentence-meaning").classList.add("hidden");
 }
 
 function hideAnswerButtons() {
   document.getElementById("btnCorrect").classList.add("hidden");
   document.getElementById("btnWrong").classList.add("hidden");
+}
+
+function showAnswerButtons() {
+  document.getElementById("btnCorrect").classList.remove("hidden");
+  document.getElementById("btnWrong").classList.remove("hidden");
 }
 
 function showNextButton() {
@@ -95,8 +101,8 @@ function hideNextButton() {
 ================================ */
 function nextCard() {
   index++;
-  if(index >= cards.length){
-    if(!isReviewMode && wrongCards.length>0){
+  if (index >= cards.length) {
+    if (!isReviewMode && wrongCards.length > 0) {
       cards = [...wrongCards];
       wrongCards = [];
       index = 0;
@@ -104,7 +110,7 @@ function nextCard() {
       alert("Mengulang kartu yang salah");
     } else {
       alert("Sesi selesai 🎉");
-      index = cards.length-1;
+      index = cards.length - 1;
       saveProgress();
       return;
     }
@@ -117,12 +123,15 @@ function nextCard() {
 }
 
 function prevCard() {
-  if(index>0){
+  if (index > 0) {
     index--;
-    render();
-    showNextButton();
-    hideAnswerButtons();
     saveProgress();
+    render();
+
+    // Prev → lihat jawaban
+    hideNextButton();
+    showAnswerButtons();
+    hideAll();
   }
 }
 
@@ -130,33 +139,30 @@ function prevCard() {
    ANSWER
 ================================ */
 function markCorrect() {
-  if(isAnswerLocked) return;
+  if (isAnswerLocked) return;
   isAnswerLocked = true;
 
   correctCount++;
-  wrongCards = wrongCards.filter((c,i)=>i!==index); // hapus jika sebelumnya salah
   updateStats();
-
-  hideAnswerButtons();
   showNextButton();
+  hideAnswerButtons();
 }
 
 function markWrong() {
-  if(isAnswerLocked) return;
+  if (isAnswerLocked) return;
   isAnswerLocked = true;
 
   wrongCount++;
   wrongCards.push(cards[index]);
   updateStats();
-
-  hideAnswerButtons();
   showNextButton();
+  hideAnswerButtons();
 }
 
 /* ===============================
    PART
 ================================ */
-function changePart(){
+function changePart() {
   currentPart = Number(document.getElementById("partSelect").value);
   loadPart();
 }
@@ -164,7 +170,7 @@ function changePart(){
 /* ===============================
    STORAGE
 ================================ */
-function saveProgress(){
+function saveProgress() {
   localStorage.setItem("flashcard_part", currentPart);
   localStorage.setItem("flashcard_index", index);
 }
@@ -172,30 +178,35 @@ function saveProgress(){
 /* ===============================
    UI
 ================================ */
-function updateProgress(){
+function updateProgress() {
   const progress = document.getElementById("progress");
-  if(!progress) return;
-  progress.textContent = `Card ${index+1} / ${cards.length} (Part ${currentPart})`;
+  if (!progress) return;
+  progress.textContent = `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
 }
 
-function updateStats(){
+function updateStats() {
   const stats = document.getElementById("stats");
-  if(!stats) return;
+  if (!stats) return;
+
   const total = correctCount + wrongCount;
-  const accuracy = total ? Math.round(correctCount/total*100) : 0;
+  const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+
   stats.textContent = `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
 /* ===============================
    EVENTS
 ================================ */
-function bindEvents(){
-  document.getElementById("revealBtn").addEventListener("click",reveal);
-  document.getElementById("nextBtn").addEventListener("click",nextCard);
-  document.getElementById("prevBtn").addEventListener("click",prevCard);
-  document.getElementById("partSelect").addEventListener("change",changePart);
+function bindEvents() {
+  document.getElementById("revealBtn").addEventListener("click", reveal);
+  document.getElementById("nextBtn").addEventListener("click", nextCard);
+  document.getElementById("prevBtn").addEventListener("click", prevCard);
+  document.getElementById("partSelect").addEventListener("change", changePart);
 }
 
+/* ===============================
+   START
+================================ */
 bindEvents();
 loadPart();
 updateStats();
