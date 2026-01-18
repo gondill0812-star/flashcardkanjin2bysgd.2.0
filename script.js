@@ -175,6 +175,35 @@ function bindEvents() {
   document.getElementById("partSelect").addEventListener("change", changePart);
 }
 
+document.addEventListener("keydown", (e) => {
+  const tag = document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+  switch (e.key) {
+    case " ":
+      e.preventDefault();
+      reveal();
+      break;
+
+    case "1":
+      markCorrect(); // otomatis next
+      break;
+
+    case "2":
+      markWrong(); // otomatis next
+      break;
+
+    case "ArrowLeft":
+      prevCard(); // opsional
+      break;
+
+    case "p":
+    case "P":
+      document.getElementById("partSelect")?.focus();
+      break;
+  }
+});
+
 /* ===============================
    START
 ================================ */
@@ -185,3 +214,4 @@ wrongCount = 0;
 localStorage.setItem("fc_correct", 0);
 localStorage.setItem("fc_wrong", 0);
 updateStats();
+
