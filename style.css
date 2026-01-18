@@ -12,16 +12,18 @@ body {
   background: #fff;
   padding: 20px;
 
-  width: 100%;
-  min-height: 100vh;
+  width: 92vw;        /* ⬅️ dikit lebih kecil */
+  max-width: 480px;   /* ⬅️ ga kegedean di layar besar */
+  min-height: 75vh;   /* ⬅️ dikit lebih pendek */
 
-  border-radius: 0;
-  box-shadow: none;
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
 
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
 
 
 .flashcard-content {
@@ -108,5 +110,6 @@ select option {
   margin-bottom: 8px;
   color: #333;
 }
+
 
 
