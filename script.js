@@ -4,11 +4,10 @@
 let correctCount = 0;
 let wrongCount = 0;
 
-let savedPart = localStorage.getItem("flashcard_part");
-let savedIndex = localStorage.getItem("flashcard_index");
-
-let currentPart = savedPart ? Number(savedPart) : 1;
-let index = savedIndex ? Number(savedIndex) : 0;
+let currentPart = 1; // selalu mulai dari part 1
+let index = 0;       // selalu mulai dari kartu pertama
+let correctCount = 0;
+let wrongCount = 0;
 
 let cards = [];
 let wrongCards = [];
@@ -254,3 +253,4 @@ function setupDesktopShortcuts() {
 bindEvents();
 loadPart();
 setupDesktopShortcuts(); 
+
