@@ -13,8 +13,6 @@ let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
 
-// simpan jawaban tiap kartu: key = "part_index", value = "correct"/"wrong"
-let answeredCards = JSON.parse(localStorage.getItem("answeredCards") || "{}");
 
 /* ===============================
    INIT
@@ -109,31 +107,20 @@ function prevCard() {
   }
 }
 
-/* ===============================
-   ANSWER
-================================ */
 function markCorrect() {
-  const key = `${currentPart}_${index}`;
-  if (answeredCards[key]) return; // lock jawaban
-
-  answeredCards[key] = "correct";
   correctCount++;
-  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
   updateStats();
   nextCard();
 }
 
 function markWrong() {
-  const key = `${currentPart}_${index}`;
-  if (answeredCards[key]) return; // lock jawaban
-
-  answeredCards[key] = "wrong";
   wrongCount++;
-  wrongCards.push(cards[index]);
-  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
   updateStats();
   nextCard();
-}
+}===============
+   ANSWER
+================================ */
+
 
 /* ===============================
    PART
@@ -141,14 +128,6 @@ function markWrong() {
 function changePart() {
   currentPart = Number(document.getElementById("partSelect").value);
   loadPart();
-}
-
-/* ===============================
-   STORAGE
-================================ */
-function saveProgress() {
-  localStorage.setItem("flashcard_part", currentPart);
-  localStorage.setItem("flashcard_index", index);
 }
 
 /* ===============================
@@ -253,4 +232,5 @@ function setupDesktopShortcuts() {
 bindEvents();
 loadPart();
 setupDesktopShortcuts(); 
+
 
