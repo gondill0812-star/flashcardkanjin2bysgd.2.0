@@ -10,7 +10,7 @@ body {
 
 .container {
   background: #fff;
-  padding: 20px;
+  padding: 18px;
 
   width: 92vw;        /* ⬅️ dikit lebih kecil */
   max-width: 480px;   /* ⬅️ ga kegedean di layar besar */
@@ -110,6 +110,7 @@ select option {
   margin-bottom: 8px;
   color: #333;
 }
+
 
 
 
