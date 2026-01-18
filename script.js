@@ -23,7 +23,7 @@ function loadPart() {
   index = 0;
   isReviewMode = false;
 
-  // Reset statistik
+  // RESET STATISTIK
   correctCount = 0;
   wrongCount = 0;
 
@@ -77,6 +77,8 @@ function reveal() {
 ================================ */
 function nextCard() {
   index++;
+
+  // habis kartu normal → masuk review
   if (index >= cards.length) {
     if (!isReviewMode && wrongCards.length > 0) {
       cards = [...wrongCards];
@@ -91,6 +93,7 @@ function nextCard() {
       return;
     }
   }
+
   saveProgress();
   render();
 }
@@ -108,12 +111,14 @@ function prevCard() {
 ================================ */
 function markCorrect() {
   correctCount++;
+  localStorage.setItem("fc_correct", correctCount);
   updateStats();
   nextCard();
 }
 
 function markWrong() {
   wrongCount++;
+  localStorage.setItem("fc_wrong", wrongCount);
   wrongCards.push(cards[index]);
   updateStats();
   nextCard();
@@ -151,11 +156,14 @@ function updateStats() {
   if (!stats) return;
 
   const total = correctCount + wrongCount;
-  const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+  const accuracy = total
+    ? Math.round((correctCount / total) * 100)
+    : 0;
 
   stats.textContent =
     `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
+
 
 /* ===============================
    EVENTS
@@ -163,8 +171,6 @@ function updateStats() {
 function bindEvents() {
   document.getElementById("revealBtn").addEventListener("click", reveal);
   document.getElementById("prevBtn").addEventListener("click", prevCard);
-  document.getElementById("btnCorrect").addEventListener("click", markCorrect);
-  document.getElementById("btnWrong").addEventListener("click", markWrong);
   document.getElementById("partSelect").addEventListener("change", changePart);
 }
 
@@ -179,15 +185,15 @@ document.addEventListener("keydown", (e) => {
       break;
 
     case "1":
-      markCorrect();
+      markCorrect(); // otomatis next
       break;
 
     case "2":
-      markWrong();
+      markWrong(); // otomatis next
       break;
 
     case "ArrowLeft":
-      prevCard();
+      prevCard(); // opsional
       break;
 
     case "p":
@@ -202,4 +208,8 @@ document.addEventListener("keydown", (e) => {
 ================================ */
 bindEvents();
 loadPart();
+correctCount = 0;
+wrongCount = 0;
+localStorage.setItem("fc_correct", 0);
+localStorage.setItem("fc_wrong", 0);
 updateStats();
