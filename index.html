@@ -1,72 +1,210 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
+/* ===============================
+   STATE
+================================ */
+let correctCount = 0;
+let wrongCount = 0;
 
-  <!-- WAJIB supaya ukuran normal di HP -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+let savedPart = localStorage.getItem("flashcard_part");
+let savedIndex = localStorage.getItem("flashcard_index");
 
-  <title>Kanji Flashcard</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+let currentPart = savedPart ? Number(savedPart) : 1;
+let index = savedIndex ? Number(savedIndex) : 0;
 
-<div class="container">
+let cards = [];
+let wrongCards = [];
+let isReviewMode = false;
+let isAnswerLocked = false;
 
-  <select id="partSelect" onchange="changePart()">
-    <option value="1">N2 • Part 1</option>
-    <option value="2">N2 • Part 2</option>
-    <option value="3">N2 • Part 3</option>
-    <option value="4">N2 • Part 4</option>
-    <option value="5">N2 • Part 5</option>
-    <option value="6">N2 • Part 6</option>
-    <option value="7">N2 • Part 7</option>
+/* ===============================
+   INIT
+================================ */
+function loadPart() {
+  cards = flashcards.filter(c => c.part === currentPart);
+  wrongCards = [];
+  index = 0;
+  isReviewMode = false;
 
-  </select>
+  correctCount = 0;
+  wrongCount = 0;
 
+  document.getElementById("partSelect").value = currentPart;
 
-  <div id="progress" class="progress-text"></div>
-  <div id="stats" class="progress-text"></div>
+  updateProgress();
+  updateStats();
+  render();
+}
 
+/* ===============================
+   RENDER
+================================ */
+function render() {
+  hideAll();
 
-  <div class="flashcard-content">
+  const card = cards[index];
+  if (!card) return;
 
-    <div class="kanji-wrapper">
-      <div id="kanji" class="kanji">漢字</div>
-    </div>
+  document.getElementById("kanji").textContent = card.kanji;
+  document.getElementById("reading").textContent = card.reading;
+  document.getElementById("meaning").textContent = card.meaning;
+  document.getElementById("sentence").textContent = card.sentence;
+  document.getElementById("sentence-reading").textContent = card.sentenceReading;
+  document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
 
-    <div class="text-wrapper">
-      <div id="reading" class="text hidden"></div>
-      <div id="meaning" class="text hidden"></div>
+  updateProgress();
+}
 
-      <div class="sentence-group">
-        <div id="sentence" class="text hidden"></div>
-        <div id="sentence-reading" class="text hidden"></div>
-        <div id="sentence-meaning" class="text hidden"></div>
-      </div>
-    </div>
+/* ===============================
+   VISIBILITY
+================================ */
+function hideAll() {
+  document.getElementById("reading").classList.add("hidden");
+  document.getElementById("meaning").classList.add("hidden");
+  document.getElementById("sentence").classList.add("hidden");
+  document.getElementById("sentence-reading").classList.add("hidden");
+  document.getElementById("sentence-meaning").classList.add("hidden");
+}
 
-  </div>
+function reveal() {
+  isAnswerLocked = false;      // 🔓 buka lagi
+  showAnswerButtons();          // munculkan tombol
 
-<div class="buttons">
-  <button id="revealBtn">Reveal</button>
-  <button id="prevBtn">Prev</button>
-  <button id="nextBtn" class="hidden">Next</button>
-  <button id="correctBtn" onclick="markCorrect()">Benar</button>
-  <button id="wrongBtn" onclick="markWrong()">Salah</button>
+  document.getElementById("reading").classList.remove("hidden");
+  document.getElementById("meaning").classList.remove("hidden");
+  document.getElementById("sentence").classList.remove("hidden");
+  document.getElementById("sentence-reading").classList.remove("hidden");
+  document.getElementById("sentence-meaning").classList.remove("hidden");
+}
 
-</div>
+/* ===============================
+   HELPER
+================================ */
+function hideAnswerButtons() {
+  document.getElementById("correctBtn")?.classList.add("hidden");
+  document.getElementById("wrongBtn")?.classList.add("hidden");
+}
 
-</div>
+function showAnswerButtons() {
+  document.getElementById("correctBtn")?.classList.remove("hidden");
+  document.getElementById("wrongBtn")?.classList.remove("hidden");
+}
 
-<script src="data.js"></script>
-<script src="script.js"></script>
-</body>
-</html>
+function showNextButtonOnly() {
+  document.getElementById("nextBtn")?.classList.remove("hidden");
+  hideAnswerButtons();
+}
 
+/* ===============================
+   NAVIGATION
+================================ */
+function nextCard() {
+  index++;
 
+  if (index >= cards.length) {
+    if (!isReviewMode && wrongCards.length > 0) {
+      cards = [...wrongCards];
+      wrongCards = [];
+      index = 0;
+      isReviewMode = true;
+      alert("Mengulang kartu yang salah");
+    } else {
+      alert("Sesi selesai 🎉");
+      index = cards.length - 1;
+      saveProgress();
+      return;
+    }
+  }
 
+  isAnswerLocked = false;
+  showAnswerButtons();
+  document.getElementById("nextBtn")?.classList.add("hidden"); // sembunyikan Next
+  saveProgress();
+  render();
+}
 
+function prevCard() {
+  if (index > 0) {
+    index--;
+    isAnswerLocked = true; // prev = lihat saja
+    render();
+    showNextButtonOnly();   // munculkan tombol Next, hide Benar/Salah
+  }
+}
 
+/* ===============================
+   ANSWER
+================================ */
+function markCorrect() {
+  if (isAnswerLocked) return;
+  isAnswerLocked = true;
 
+  correctCount++;
+  updateStats();
+  nextCard();
+}
 
+function markWrong() {
+  if (isAnswerLocked) return;
+  isAnswerLocked = true;
+
+  wrongCount++;
+  wrongCards.push(cards[index]);
+  updateStats();
+  nextCard();
+}
+
+/* ===============================
+   PART
+================================ */
+function changePart() {
+  currentPart = Number(document.getElementById("partSelect").value);
+  loadPart();
+}
+
+/* ===============================
+   STORAGE
+================================ */
+function saveProgress() {
+  localStorage.setItem("flashcard_part", currentPart);
+  localStorage.setItem("flashcard_index", index);
+}
+
+/* ===============================
+   UI
+================================ */
+function updateProgress() {
+  const progress = document.getElementById("progress");
+  if (!progress) return;
+
+  progress.textContent =
+    `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
+}
+
+function updateStats() {
+  const stats = document.getElementById("stats");
+  if (!stats) return;
+
+  const total = correctCount + wrongCount;
+  const accuracy = total
+    ? Math.round((correctCount / total) * 100)
+    : 0;
+
+  stats.textContent =
+    `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
+}
+
+/* ===============================
+   EVENTS
+================================ */
+function bindEvents() {
+  document.getElementById("revealBtn").addEventListener("click", reveal);
+  document.getElementById("nextBtn")?.addEventListener("click", nextCard);
+  document.getElementById("prevBtn").addEventListener("click", prevCard);
+  document.getElementById("partSelect").addEventListener("change", changePart);
+}
+
+/* ===============================
+   START
+================================ */
+bindEvents();
+loadPart();
+updateStats();
