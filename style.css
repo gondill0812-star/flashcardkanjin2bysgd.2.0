@@ -11,15 +11,18 @@ body {
 .container {
   background: #fff;
   padding: 20px;
+
   width: 100%;
-  max-width: 420px;
-  min-height: 550px;
-  border-radius: 15px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  min-height: 100vh;
+
+  border-radius: 0;
+  box-shadow: none;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
+
 
 .flashcard-content {
   display: flex;
@@ -105,4 +108,5 @@ select option {
   margin-bottom: 8px;
   color: #333;
 }
+
 
