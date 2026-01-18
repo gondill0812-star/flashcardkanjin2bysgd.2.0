@@ -21,7 +21,7 @@ let isAnswerLocked = false;
 function loadPart() {
   cards = flashcards.filter(c => c.part === currentPart);
   wrongCards = [];
-  index = 0;
+  index = savedIndex ? Number(savedIndex) : 0;
   isReviewMode = false;
 
   correctCount = 0;
@@ -32,7 +32,6 @@ function loadPart() {
   updateProgress();
   updateStats();
   render();
-
   hideNextButton();
   showAnswerButtons();
 }
@@ -42,7 +41,6 @@ function loadPart() {
 ================================ */
 function render() {
   hideAll();
-
   const card = cards[index];
   if (!card) return;
 
@@ -80,21 +78,21 @@ function hideAll() {
 }
 
 function hideAnswerButtons() {
-  document.getElementById("correctBtn")?.classList.add("hidden");
-  document.getElementById("wrongBtn")?.classList.add("hidden");
+  document.getElementById("correctBtn").classList.add("hidden");
+  document.getElementById("wrongBtn").classList.add("hidden");
 }
 
 function showAnswerButtons() {
-  document.getElementById("correctBtn")?.classList.remove("hidden");
-  document.getElementById("wrongBtn")?.classList.remove("hidden");
+  document.getElementById("correctBtn").classList.remove("hidden");
+  document.getElementById("wrongBtn").classList.remove("hidden");
 }
 
 function showNextButton() {
-  document.getElementById("nextBtn")?.classList.remove("hidden");
+  document.getElementById("nextBtn").classList.remove("hidden");
 }
 
 function hideNextButton() {
-  document.getElementById("nextBtn")?.classList.add("hidden");
+  document.getElementById("nextBtn").classList.add("hidden");
 }
 
 /* ===============================
@@ -119,8 +117,8 @@ function nextCard() {
   }
 
   isAnswerLocked = false;
-  showAnswerButtons();   // tombol Benar/Salah muncul
-  hideNextButton();      // Next disembunyikan
+  hideNextButton();       // sembunyikan Next
+  showAnswerButtons();    // Benar/Salah muncul
   saveProgress();
   render();
 }
@@ -128,7 +126,7 @@ function nextCard() {
 function prevCard() {
   if (index > 0) {
     index--;
-    isAnswerLocked = true;  // prev = lihat saja
+    isAnswerLocked = true; // lihat saja
 
     render();
 
@@ -147,7 +145,8 @@ function markCorrect() {
 
   correctCount++;
   updateStats();
-  nextCard();
+  showNextButton();      // setelah jawaban, munculkan Next
+  hideAnswerButtons();
 }
 
 function markWrong() {
@@ -157,7 +156,8 @@ function markWrong() {
   wrongCount++;
   wrongCards.push(cards[index]);
   updateStats();
-  nextCard();
+  showNextButton();      // setelah jawaban, munculkan Next
+  hideAnswerButtons();
 }
 
 /* ===============================
@@ -212,7 +212,4 @@ function bindEvents() {
 
 /* ===============================
    START
-================================ */
-bindEvents();
-loadPart();
-updateStats();
+=============
