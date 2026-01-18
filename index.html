@@ -2,139 +2,57 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+
+  <!-- WAJIB supaya ukuran normal di HP -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Kanji Flashcard</title>
-  <style>
-    body {
-      background: linear-gradient(135deg, #000000, #3a3a3a);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .container {
-      background: #fff;
-      padding: 20px;
-      width: 92vw;
-      max-width: 480px;
-      min-height: 75vh;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      text-align: center;
-    }
-
-    .flashcard-content {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      flex-grow: 1;
-    }
-
-    .kanji {
-      font-size: 64px;
-      margin-bottom: 15px;
-      color: #000;
-    }
-
-    .text {
-      font-size: 18px;
-      margin: 6px 0;
-      color: #000;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .buttons {
-      margin-top: 15px;
-      display: flex;
-      justify-content: space-around;
-      flex-wrap: wrap;
-    }
-
-    button, select {
-      margin: 6px;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      color: #fff;
-      background: linear-gradient(135deg, #12051f, #00ddff);
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    }
-
-    button:hover, select:hover {
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 10px rgba(0,0,0,0.4);
-    }
-
-    button:active, select:active {
-      transform: translateY(0) scale(0.98);
-      box-shadow: 0 3px 5px rgba(0,0,0,0.3);
-    }
-
-    select option {
-      background-color: #fff;
-      color: #000;
-    }
-
-    .progress-text {
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 8px;
-      color: #333;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-  <select id="partSelect">
-    <option value="1">N2 • Part 1</option>
-    <option value="2">N2 • Part 2</option>
-    <option value="3">N2 • Part 3</option>
-    <option value="4">N2 • Part 4</option>
-    <option value="5">N2 • Part 5</option>
-    <option value="6">N2 • Part 6</option>
-    <option value="7">N2 • Part 7</option>
+
+  <select id="partSelect" onchange="changePart()">
+    <option value="1">Part 1 N2</option>
+    <option value="2">Part 2 N2</option>
+    <option value="3">Part 3 N2</option>
+    <option value="4">Part 4 N2</option>
+    <option value="5">Part 5 N2</option>
+    <option value="6">Part 6 N2</option>
+    <option value="7">Part 7 N2</option>
   </select>
 
   <div id="progress" class="progress-text"></div>
   <div id="stats" class="progress-text"></div>
 
+
   <div class="flashcard-content">
+
     <div class="kanji-wrapper">
       <div id="kanji" class="kanji">漢字</div>
     </div>
+
     <div class="text-wrapper">
       <div id="reading" class="text hidden"></div>
       <div id="meaning" class="text hidden"></div>
+
       <div class="sentence-group">
         <div id="sentence" class="text hidden"></div>
         <div id="sentence-reading" class="text hidden"></div>
         <div id="sentence-meaning" class="text hidden"></div>
       </div>
     </div>
+
   </div>
 
-  <div class="buttons">
-    <button id="revealBtn">Reveal</button>
-    <button id="prevBtn">Prev</button>
-    <button id="nextBtn" class="hidden">Next</button>
-    <button id="correctBtn">Benar</button>
-    <button id="wrongBtn">Salah</button>
-  </div>
+<div class="buttons">
+  <button id="revealBtn">Reveal</button>
+  <button id="prevBtn">Prev</button>
+  <button id="btnCorrect" onclick="markCorrect()">Benar</button>
+  <button id="btnWrong" onclick="markWrong()">Salah</button>
+</div>
+
 </div>
 
 <script src="data.js"></script>
