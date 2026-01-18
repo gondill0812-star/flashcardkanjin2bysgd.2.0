@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="container">
 
   <select id="partSelect" onchange="changePart()">
@@ -27,12 +28,12 @@
       <div id="kanji" class="kanji">漢字</div>
     </div>
     <div class="text-wrapper">
-      <div id="reading" class="text hidden"></div>
-      <div id="meaning" class="text hidden"></div>
+      <div id="reading" class="text">読み</div>
+      <div id="meaning" class="text">意味</div>
       <div class="sentence-group">
-        <div id="sentence" class="text hidden"></div>
-        <div id="sentence-reading" class="text hidden"></div>
-        <div id="sentence-meaning" class="text hidden"></div>
+        <div id="sentence" class="text">文</div>
+        <div id="sentence-reading" class="text">文読み</div>
+        <div id="sentence-meaning" class="text">文意味</div>
       </div>
     </div>
   </div>
@@ -40,7 +41,6 @@
   <div class="buttons">
     <button id="revealBtn">Reveal</button>
     <button id="prevBtn">Prev</button>
-    <button id="nextBtn" class="hidden">Next</button>
     <button id="btnCorrect" onclick="markCorrect()">Benar</button>
     <button id="btnWrong" onclick="markWrong()">Salah</button>
   </div>
