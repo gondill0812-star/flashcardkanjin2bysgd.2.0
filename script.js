@@ -13,7 +13,6 @@ let index = savedIndex ? Number(savedIndex) : 0;
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
-let isAnswerLocked = false;
 
 /* ===============================
    INIT
@@ -21,9 +20,10 @@ let isAnswerLocked = false;
 function loadPart() {
   cards = flashcards.filter(c => c.part === currentPart);
   wrongCards = [];
-  index = savedIndex ? Number(savedIndex) : 0;
+  index = 0;
   isReviewMode = false;
 
+  // RESET STATISTIK
   correctCount = 0;
   wrongCount = 0;
 
@@ -32,16 +32,14 @@ function loadPart() {
   updateProgress();
   updateStats();
   render();
-
-  hideNextButton();
-  showAnswerButtons();
 }
 
 /* ===============================
-   RENDER & REVEAL
+   RENDER
 ================================ */
 function render() {
   hideAll();
+
   const card = cards[index];
   if (!card) return;
 
@@ -53,31 +51,10 @@ function render() {
   document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
 
   updateProgress();
-
-  // Jika jawaban sudah di-unlock sebelumnya (Prev dari jawaban), tampilkan Benar/Salah atau Next
-  if (isAnswerLocked) {
-    hideAnswerButtons();
-    showNextButton();
-  } else {
-    showAnswerButtons();
-    hideNextButton();
-  }
-}
-
-function reveal() {
-  isAnswerLocked = false;      
-  showAnswerButtons();          
-  hideNextButton();             
-
-  document.getElementById("reading").classList.remove("hidden");
-  document.getElementById("meaning").classList.remove("hidden");
-  document.getElementById("sentence").classList.remove("hidden");
-  document.getElementById("sentence-reading").classList.remove("hidden");
-  document.getElementById("sentence-meaning").classList.remove("hidden");
 }
 
 /* ===============================
-   VISIBILITY HELPERS
+   VISIBILITY
 ================================ */
 function hideAll() {
   document.getElementById("reading").classList.add("hidden");
@@ -87,22 +64,12 @@ function hideAll() {
   document.getElementById("sentence-meaning").classList.add("hidden");
 }
 
-function hideAnswerButtons() {
-  document.getElementById("correctBtn").classList.add("hidden");
-  document.getElementById("wrongBtn").classList.add("hidden");
-}
-
-function showAnswerButtons() {
-  document.getElementById("correctBtn").classList.remove("hidden");
-  document.getElementById("wrongBtn").classList.remove("hidden");
-}
-
-function showNextButton() {
-  document.getElementById("nextBtn").classList.remove("hidden");
-}
-
-function hideNextButton() {
-  document.getElementById("nextBtn").classList.add("hidden");
+function reveal() {
+  document.getElementById("reading").classList.remove("hidden");
+  document.getElementById("meaning").classList.remove("hidden");
+  document.getElementById("sentence").classList.remove("hidden");
+  document.getElementById("sentence-reading").classList.remove("hidden");
+  document.getElementById("sentence-meaning").classList.remove("hidden");
 }
 
 /* ===============================
@@ -111,6 +78,7 @@ function hideNextButton() {
 function nextCard() {
   index++;
 
+  // habis kartu normal → masuk review
   if (index >= cards.length) {
     if (!isReviewMode && wrongCards.length > 0) {
       cards = [...wrongCards];
@@ -126,9 +94,6 @@ function nextCard() {
     }
   }
 
-  isAnswerLocked = false;
-  hideNextButton();
-  showAnswerButtons();
   saveProgress();
   render();
 }
@@ -136,7 +101,7 @@ function nextCard() {
 function prevCard() {
   if (index > 0) {
     index--;
-    isAnswerLocked = true; // lihat saja
+    saveProgress();
     render();
   }
 }
@@ -145,24 +110,18 @@ function prevCard() {
    ANSWER
 ================================ */
 function markCorrect() {
-  if (isAnswerLocked) return;
-  isAnswerLocked = true;
-
   correctCount++;
+  localStorage.setItem("fc_correct", correctCount);
   updateStats();
-  hideAnswerButtons();
-  showNextButton();
+  nextCard();
 }
 
 function markWrong() {
-  if (isAnswerLocked) return;
-  isAnswerLocked = true;
-
   wrongCount++;
+  localStorage.setItem("fc_wrong", wrongCount);
   wrongCards.push(cards[index]);
   updateStats();
-  hideAnswerButtons();
-  showNextButton();
+  nextCard();
 }
 
 /* ===============================
@@ -205,19 +164,53 @@ function updateStats() {
     `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
+
 /* ===============================
    EVENTS
 ================================ */
 function bindEvents() {
   document.getElementById("revealBtn").addEventListener("click", reveal);
-  document.getElementById("nextBtn").addEventListener("click", nextCard);
+  document.getElementById("nextBtn")?.addEventListener("click", nextCard);
   document.getElementById("prevBtn").addEventListener("click", prevCard);
   document.getElementById("partSelect").addEventListener("change", changePart);
 }
+
+document.addEventListener("keydown", (e) => {
+  const tag = document.activeElement.tagName;
+  if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+  switch (e.key) {
+    case " ":
+      e.preventDefault();
+      reveal();
+      break;
+
+    case "1":
+      markCorrect(); // otomatis next
+      break;
+
+    case "2":
+      markWrong(); // otomatis next
+      break;
+
+    case "ArrowLeft":
+      prevCard(); // opsional
+      break;
+
+    case "p":
+    case "P":
+      document.getElementById("partSelect")?.focus();
+      break;
+  }
+});
 
 /* ===============================
    START
 ================================ */
 bindEvents();
 loadPart();
+correctCount = 0;
+wrongCount = 0;
+localStorage.setItem("fc_correct", 0);
+localStorage.setItem("fc_wrong", 0);
 updateStats();
