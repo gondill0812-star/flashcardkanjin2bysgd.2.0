@@ -32,6 +32,7 @@ function loadPart() {
   updateProgress();
   updateStats();
   render();
+
   hideNextButton();
   showAnswerButtons();
 }
@@ -52,12 +53,21 @@ function render() {
   document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
 
   updateProgress();
+
+  // Jika jawaban sudah di-unlock sebelumnya (Prev dari jawaban), tampilkan Benar/Salah atau Next
+  if (isAnswerLocked) {
+    hideAnswerButtons();
+    showNextButton();
+  } else {
+    showAnswerButtons();
+    hideNextButton();
+  }
 }
 
 function reveal() {
-  isAnswerLocked = false;      // unlock jawaban
-  showAnswerButtons();          // munculkan tombol Benar/Salah
-  hideNextButton();             // sembunyikan Next
+  isAnswerLocked = false;      
+  showAnswerButtons();          
+  hideNextButton();             
 
   document.getElementById("reading").classList.remove("hidden");
   document.getElementById("meaning").classList.remove("hidden");
@@ -117,8 +127,8 @@ function nextCard() {
   }
 
   isAnswerLocked = false;
-  hideNextButton();       // sembunyikan Next
-  showAnswerButtons();    // Benar/Salah muncul
+  hideNextButton();
+  showAnswerButtons();
   saveProgress();
   render();
 }
@@ -127,12 +137,7 @@ function prevCard() {
   if (index > 0) {
     index--;
     isAnswerLocked = true; // lihat saja
-
     render();
-
-    // tombol Next muncul, Benar/Salah hilang
-    showNextButton();
-    hideAnswerButtons();
   }
 }
 
@@ -145,8 +150,8 @@ function markCorrect() {
 
   correctCount++;
   updateStats();
-  showNextButton();      // setelah jawaban, munculkan Next
   hideAnswerButtons();
+  showNextButton();
 }
 
 function markWrong() {
@@ -156,8 +161,8 @@ function markWrong() {
   wrongCount++;
   wrongCards.push(cards[index]);
   updateStats();
-  showNextButton();      // setelah jawaban, munculkan Next
   hideAnswerButtons();
+  showNextButton();
 }
 
 /* ===============================
@@ -212,4 +217,7 @@ function bindEvents() {
 
 /* ===============================
    START
-=============
+================================ */
+bindEvents();
+loadPart();
+updateStats();
