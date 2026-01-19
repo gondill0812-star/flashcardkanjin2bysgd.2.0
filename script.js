@@ -191,12 +191,13 @@ function bindEvents() {
 }
 
 function setupDesktopShortcuts() {
-  const isDesktop = window.innerWidth >= 768;
-  if (!isDesktop) return;
-
   document.addEventListener("keydown", (e) => {
+    // abaikan jika fokus input
     const tag = document.activeElement.tagName;
     if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+    // jika device touch + tanpa keyboard fisik → abaikan
+    if (navigator.maxTouchPoints > 0 && !e.key) return;
 
     switch (e.key) {
       case " ":
@@ -229,3 +230,5 @@ function setupDesktopShortcuts() {
 bindEvents();
 loadPart();
 setupDesktopShortcuts();
+console.log("width:", window.innerWidth);
+
