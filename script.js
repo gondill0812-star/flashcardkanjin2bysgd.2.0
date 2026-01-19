@@ -4,18 +4,15 @@
 let correctCount = 0;
 let wrongCount = 0;
 
-let savedPart = localStorage.getItem("flashcard_part");
-let savedIndex = localStorage.getItem("flashcard_index");
-
-let currentPart = savedPart ? Number(savedPart) : 1;
-let index = savedIndex ? Number(savedIndex) : 0;
+let currentPart = 1;
+let index = 0;
 
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
 
-// simpan jawaban tiap kartu: key = "part_index", value = "correct"/"wrong"
-let answeredCards = JSON.parse(localStorage.getItem("answeredCards") || "{}");
+// simpan jawaban hanya di memory (hilang saat refresh)
+let answeredCards = {};
 
 /* ===============================
    INIT
@@ -29,6 +26,7 @@ function loadPart() {
   // RESET STATISTIK
   correctCount = 0;
   wrongCount = 0;
+  answeredCards = {};
 
   document.getElementById("partSelect").value = currentPart;
 
@@ -94,12 +92,10 @@ function nextCard() {
     } else {
       alert("Sesi selesai 🎉");
       index = cards.length - 1;
-      saveProgress();
       return;
     }
   }
 
-  saveProgress();
   render();
 }
 
@@ -115,23 +111,21 @@ function prevCard() {
 ================================ */
 function markCorrect() {
   const key = `${currentPart}_${index}`;
-  if (answeredCards[key]) return; // lock jawaban
+  if (answeredCards[key]) return;
 
   answeredCards[key] = "correct";
   correctCount++;
-  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
   updateStats();
   nextCard();
 }
 
 function markWrong() {
   const key = `${currentPart}_${index}`;
-  if (answeredCards[key]) return; // lock jawaban
+  if (answeredCards[key]) return;
 
   answeredCards[key] = "wrong";
   wrongCount++;
   wrongCards.push(cards[index]);
-  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
   updateStats();
   nextCard();
 }
@@ -142,14 +136,6 @@ function markWrong() {
 function changePart() {
   currentPart = Number(document.getElementById("partSelect").value);
   loadPart();
-}
-
-/* ===============================
-   STORAGE
-================================ */
-function saveProgress() {
-  localStorage.setItem("flashcard_part", currentPart);
-  localStorage.setItem("flashcard_index", index);
 }
 
 /* ===============================
@@ -182,18 +168,15 @@ function updateButtons() {
   const revealBtn = document.getElementById("revealBtn");
 
   if (answeredCards[key]) {
-    // kartu sudah dijawab → tombol Benar/Salah hilang, Next muncul
     btnCorrect.classList.add("hidden");
     btnWrong.classList.add("hidden");
     nextBtn.classList.remove("hidden");
   } else {
-    // kartu belum dijawab → tombol Benar/Salah muncul, Next hide
     btnCorrect.classList.remove("hidden");
     btnWrong.classList.remove("hidden");
     nextBtn.classList.add("hidden");
   }
 
-  // Reveal selalu tampil
   revealBtn.classList.remove("hidden");
 }
 
@@ -208,40 +191,32 @@ function bindEvents() {
 }
 
 function setupDesktopShortcuts() {
-  // Cek apakah device desktop/laptop
-  const isDesktop = window.innerWidth >= 768; 
-  if (!isDesktop) return; // jika HP/touchscreen, tidak pasang shortcut
+  const isDesktop = window.innerWidth >= 768;
+  if (!isDesktop) return;
 
-  // Pasang event listener untuk keyboard
   document.addEventListener("keydown", (e) => {
-    // Abaikan jika fokus di input, select, atau textarea
     const tag = document.activeElement.tagName;
     if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
 
     switch (e.key) {
-      case " ": // Space → reveal
-        e.preventDefault(); // cegah scroll
+      case " ":
+        e.preventDefault();
         reveal();
         break;
-
-      case "1": // 1 → mark correct
+      case "1":
         markCorrect();
         break;
-
-      case "2": // 2 → mark wrong
+      case "2":
         markWrong();
         break;
-
-      case "ArrowLeft": // kiri → prev
+      case "ArrowLeft":
         prevCard();
         break;
-
-      case "ArrowRight": // kanan → next
+      case "ArrowRight":
         nextCard();
         break;
-
       case "p":
-      case "P": // p → fokus ke dropdown part
+      case "P":
         document.getElementById("partSelect")?.focus();
         break;
     }
@@ -253,4 +228,4 @@ function setupDesktopShortcuts() {
 ================================ */
 bindEvents();
 loadPart();
-setupDesktopShortcuts(); 
+setupDesktopShortcuts();
