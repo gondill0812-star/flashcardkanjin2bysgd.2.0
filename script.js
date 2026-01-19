@@ -1,150 +1,89 @@
 /* ===============================
    STATE
 ================================ */
-let currentPart = 1;
-let index = 0;
+let correctCount = 0;
+let wrongCount = 0;
+
+let savedPart = localStorage.getItem("flashcard_part");
+let savedIndex = localStorage.getItem("flashcard_index");
+
+let currentPart = savedPart ? Number(savedPart) : 1;
+let index = savedIndex ? Number(savedIndex) : 0;
 
 let cards = [];
 let wrongCards = [];
 let isReviewMode = false;
 
-let correctCount = 0;
-let wrongCount = 0;
-
-// Menyimpan kartu yang sudah dijawab (HANYA SELAMA HALAMAN AKTIF)
-let answeredCards = {};
-
+// simpan jawaban tiap kartu: key = "part_index", value = "correct"/"wrong"
+let answeredCards = JSON.parse(localStorage.getItem("answeredCards") || "{}");
 
 /* ===============================
    INIT
 ================================ */
-bindEvents();
-loadPart();
-setupDesktopShortcuts();
-
-
-/* ===============================
-   EVENT BINDING
-================================ */
-function bindEvents() {
-  document.getElementById("revealBtn").addEventListener("click", reveal);
-  document.getElementById("prevBtn").addEventListener("click", prevCard);
-  document.getElementById("nextBtn").addEventListener("click", nextCard);
-  document.getElementById("partSelect").addEventListener("change", changePart);
-}
-
-
-/* ===============================
-   KEYBOARD SHORTCUTS (DESKTOP)
-================================ */
-function setupDesktopShortcuts() {
-  const isDesktop = window.innerWidth >= 768;
-  if (!isDesktop) return;
-
-  document.addEventListener("keydown", (e) => {
-    const tag = document.activeElement.tagName;
-    if (["INPUT", "SELECT", "TEXTAREA"].includes(tag)) return;
-
-    switch (e.key) {
-      case " ":
-        e.preventDefault();
-        reveal();
-        break;
-
-      case "1":
-        markCorrect();
-        break;
-
-      case "2":
-        markWrong();
-        break;
-
-      case "ArrowLeft":
-        prevCard();
-        break;
-
-      case "ArrowRight":
-        nextCard();
-        break;
-
-      case "p":
-      case "P":
-        document.getElementById("partSelect").focus();
-        break;
-    }
-  });
-}
-
-
-/* ===============================
-   CORE LOGIC
-================================ */
 function loadPart() {
-  currentPart = parseInt(document.getElementById("partSelect").value);
+  cards = flashcards.filter(c => c.part === currentPart);
+  wrongCards = [];
   index = 0;
+  isReviewMode = false;
 
+  // RESET STATISTIK
   correctCount = 0;
   wrongCount = 0;
 
-  answeredCards = {};
-  wrongCards = [];
-  isReviewMode = false;
+  document.getElementById("partSelect").value = currentPart;
 
-  cards = flashcards[currentPart]; // pastikan variable ini ADA
-
+  updateProgress();
+  updateStats();
   render();
+  updateButtons();
 }
 
-function changePart() {
-  loadPart();
-}
-
+/* ===============================
+   RENDER
+================================ */
 function render() {
+  hideAll();
+
   const card = cards[index];
+  if (!card) return;
 
   document.getElementById("kanji").textContent = card.kanji;
-  document.getElementById("reading").textContent = "";
-  document.getElementById("meaning").textContent = "";
+  document.getElementById("reading").textContent = card.reading;
+  document.getElementById("meaning").textContent = card.meaning;
+  document.getElementById("sentence").textContent = card.sentence;
+  document.getElementById("sentence-reading").textContent = card.sentenceReading;
+  document.getElementById("sentence-meaning").textContent = card.sentenceMeaning;
 
-  updateStats();
+  updateProgress();
   updateButtons();
+}
+
+/* ===============================
+   VISIBILITY
+================================ */
+function hideAll() {
+  document.getElementById("reading").classList.add("hidden");
+  document.getElementById("meaning").classList.add("hidden");
+  document.getElementById("sentence").classList.add("hidden");
+  document.getElementById("sentence-reading").classList.add("hidden");
+  document.getElementById("sentence-meaning").classList.add("hidden");
 }
 
 function reveal() {
-  const card = cards[index];
-  document.getElementById("reading").textContent = card.reading;
-  document.getElementById("meaning").textContent = card.meaning;
+  document.getElementById("reading").classList.remove("hidden");
+  document.getElementById("meaning").classList.remove("hidden");
+  document.getElementById("sentence").classList.remove("hidden");
+  document.getElementById("sentence-reading").classList.remove("hidden");
+  document.getElementById("sentence-meaning").classList.remove("hidden");
 }
 
-function markCorrect() {
-  const key = `${currentPart}_${index}`;
-  if (answeredCards[key]) return;
-
-  answeredCards[key] = true;
-  correctCount++;
-
-  updateStats();
-  updateButtons();
-}
-
-function markWrong() {
-  const key = `${currentPart}_${index}`;
-  if (answeredCards[key]) return;
-
-  answeredCards[key] = true;
-  wrongCount++;
-  wrongCards.push(cards[index]);
-
-  updateStats();
-  updateButtons();
-}
-
+/* ===============================
+   NAVIGATION
+================================ */
 function nextCard() {
-  const key = `${currentPart}_${index}`;
-  if (!answeredCards[key]) return; // ⛔ WAJIB jawab dulu
-
   index++;
 
+  // habis kartu normal → masuk review
   if (index >= cards.length) {
     if (!isReviewMode && wrongCards.length > 0) {
       cards = [...wrongCards];
@@ -155,32 +94,163 @@ function nextCard() {
     } else {
       alert("Sesi selesai 🎉");
       index = cards.length - 1;
+      saveProgress();
       return;
     }
   }
 
+  saveProgress();
   render();
 }
 
 function prevCard() {
-  if (index === 0) return;
-  index--;
-  render();
+  if (index > 0) {
+    index--;
+    render();
+  }
 }
 
+/* ===============================
+   ANSWER
+================================ */
+function markCorrect() {
+  const key = `${currentPart}_${index}`;
+  if (answeredCards[key]) return; // lock jawaban
+
+  answeredCards[key] = "correct";
+  correctCount++;
+  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
+  updateStats();
+  nextCard();
+}
+
+function markWrong() {
+  const key = `${currentPart}_${index}`;
+  if (answeredCards[key]) return; // lock jawaban
+
+  answeredCards[key] = "wrong";
+  wrongCount++;
+  wrongCards.push(cards[index]);
+  localStorage.setItem("answeredCards", JSON.stringify(answeredCards));
+  updateStats();
+  nextCard();
+}
 
 /* ===============================
-   UI HELPERS
+   PART
 ================================ */
+function changePart() {
+  currentPart = Number(document.getElementById("partSelect").value);
+  loadPart();
+}
+
+/* ===============================
+   STORAGE
+================================ */
+function saveProgress() {
+  localStorage.setItem("flashcard_part", currentPart);
+  localStorage.setItem("flashcard_index", index);
+}
+
+/* ===============================
+   UI
+================================ */
+function updateProgress() {
+  const progress = document.getElementById("progress");
+  if (!progress) return;
+
+  progress.textContent =
+    `Card ${index + 1} / ${cards.length} (Part ${currentPart})`;
+}
+
 function updateStats() {
-  document.getElementById("correctCount").textContent = correctCount;
-  document.getElementById("wrongCount").textContent = wrongCount;
+  const stats = document.getElementById("stats");
+  if (!stats) return;
+
+  const total = correctCount + wrongCount;
+  const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+
+  stats.textContent =
+    `✔ Benar: ${correctCount} | ✖ Salah: ${wrongCount} | 🎯 Akurasi: ${accuracy}%`;
 }
 
 function updateButtons() {
   const key = `${currentPart}_${index}`;
-  const answered = answeredCards[key];
+  const btnCorrect = document.getElementById("btnCorrect");
+  const btnWrong = document.getElementById("btnWrong");
+  const nextBtn = document.getElementById("nextBtn");
+  const revealBtn = document.getElementById("revealBtn");
 
-  document.getElementById("correctBtn").disabled = answered;
-  document.getElementById("wrongBtn").disabled = answered;
+  if (answeredCards[key]) {
+    // kartu sudah dijawab → tombol Benar/Salah hilang, Next muncul
+    btnCorrect.classList.add("hidden");
+    btnWrong.classList.add("hidden");
+    nextBtn.classList.remove("hidden");
+  } else {
+    // kartu belum dijawab → tombol Benar/Salah muncul, Next hide
+    btnCorrect.classList.remove("hidden");
+    btnWrong.classList.remove("hidden");
+    nextBtn.classList.add("hidden");
+  }
+
+  // Reveal selalu tampil
+  revealBtn.classList.remove("hidden");
 }
+
+/* ===============================
+   EVENTS
+================================ */
+function bindEvents() {
+  document.getElementById("revealBtn").addEventListener("click", reveal);
+  document.getElementById("prevBtn").addEventListener("click", prevCard);
+  document.getElementById("nextBtn").addEventListener("click", nextCard);
+  document.getElementById("partSelect").addEventListener("change", changePart);
+}
+
+function setupDesktopShortcuts() {
+  // Cek apakah device desktop/laptop
+  const isDesktop = window.innerWidth >= 768; 
+  if (!isDesktop) return; // jika HP/touchscreen, tidak pasang shortcut
+
+  // Pasang event listener untuk keyboard
+  document.addEventListener("keydown", (e) => {
+    // Abaikan jika fokus di input, select, atau textarea
+    const tag = document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+
+    switch (e.key) {
+      case " ": // Space → reveal
+        e.preventDefault(); // cegah scroll
+        reveal();
+        break;
+
+      case "1": // 1 → mark correct
+        markCorrect();
+        break;
+
+      case "2": // 2 → mark wrong
+        markWrong();
+        break;
+
+      case "ArrowLeft": // kiri → prev
+        prevCard();
+        break;
+
+      case "ArrowRight": // kanan → next
+        nextCard();
+        break;
+
+      case "p":
+      case "P": // p → fokus ke dropdown part
+        document.getElementById("partSelect")?.focus();
+        break;
+    }
+  });
+}
+
+/* ===============================
+   START
+================================ */
+bindEvents();
+loadPart();
+setupDesktopShortcuts(); 
